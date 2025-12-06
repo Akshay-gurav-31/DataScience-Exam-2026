@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-box h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-box p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0 0 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00c853 0%, #00e676 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #001f3f;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #001f3f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-count {
+            font-size: 0.8em;
+            background: #001f3f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .question-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .question-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .question-item.completed {
+            background: #e8f5e9;
+            border-left: 4px solid #00c853;
+        }
+
+        .checkbox {
+            min-width: 24px;
+            min-height: 24px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #999;
+            border-radius: 6px;
+            margin-right: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            background: white;
+        }
+
+        .checkbox.checked {
+            background: #00c853;
+            border-color: #00c853;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            flex: 1;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .question-item.completed .question-text {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-box {
+                padding: 10px 15px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Data Science Tracker</h1>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3 id="totalQuestions">64</h3>
+                    <p>Total Questions</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="completedQuestions">0</h3>
+                    <p>Done</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="percentageComplete">0%</h3>
+                    <p>Complete</p>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">
+                    <span>Common Questions (Both Papers & Units)</span>
+                    <span class="section-count" id="commonCount">0/36</span>
+                </div>
+                <div id="commonQuestions"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <span>Unique Questions (Only in Units)</span>
+                    <span class="section-count" id="uniqueCount">0/28</span>
+                </div>
+                <div id="uniqueQuestions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const commonQuestions = [
+            "Explain Arithmetic operators with example",
+            "Explain Python List Methods",
+            "Explain string methods",
+            "What is a dictionary in Python? Explain its key features and how it differs from other data types like lists and tuples. Provide examples to demonstrate dictionary creation, accessing values, updating entries, and deleting key-value pairs",
+            "Write a Python program to count the frequency of characters in a string using a dictionary",
+            "What are classes and objects in Python? Explain the concept of object-oriented programming with reference to classes and objects. Provide examples to demonstrate how to define a class, create objects, and access attributes and methods",
+            "What is a function in Python? Explain the purpose and advantages of using functions in programming. Provide examples to demonstrate how to define and call a function, including the use of parameters and return values",
+            "What's Data Science Pipeline?",
+            "Data Science Pipeline",
+            "Explain in detail the concept of a Data Science Pipeline. Discuss each stage of the pipeline with suitable examples. Also, illustrate the pipeline with a neat diagram",
+            "Explain applications of data science",
+            "Explain data science and AI",
+            "What Is Data Visualization? Explain Various Types Of Plots",
+            "Explain Data Visualization? Explain Various Types Of Plots",
+            "Explain Data Visualization. Explain Various Types of Plots",
+            "What is data visualization? Explain its importance in data analysis",
+            "What Is Matplotlib? Explain box and pie plot",
+            "What is Matplotlib? Explain box and pie plot",
+            "What is a scatter plot? Explain with example",
+            "Explain scatter plot with program",
+            "Explain Histogram with example?",
+            "Short note on: histogram, boxplot, directed graph, undirected graph",
+            "Explain pie chart",
+            "Write difference between bar chart, line chart and pie chart?",
+            "Explain Measuring central tendency, Measuring variance",
+            "Explain the different measures of central tendency — mean, median, and mode — in detail. Describe how each measure is calculated, state their advantages and disadvantages, and illustrate your answer with a suitable example",
+            "What is coefficient of correlation?",
+            "What is coefficient of correlation? How to find it with example?",
+            "What is a Contingency Table? Explain in detail",
+            "Explain Exploring Data Analysis (EDA)",
+            "Exploring Data Analysis (EDA)",
+            "What is Exploratory Data Analysis? Explain its types and steps to perform it in detail",
+            "What is Wrangling of Data?",
+            "Wrangling of Data",
+            "What is data wrangling? Explain data wrangling process in detail",
+            "Arithmetic operators"
+        ];
+
+        const uniqueQuestions = [
+            "What is data science? What is Python? List and explain features of python",
+            "Explain the role of data types in Python programming. Illustrate your answer with examples of the list data type. Additionally, describe various methods used to add and remove elements from a list in Python",
+            "What is a string in Python? Describe various string operations such as slicing, concatenation, and repetition with examples",
+            "Write difference between list and tuple",
+            "Define a tuple in Python. Provide examples to illustrate tuple creation and access. Also, explain the concept of immutability in tuples and its implications in Python programming",
+            "Write a program that accepts a student's marks and prints: \"Pass\" if marks ≥ 40, \"Fail\" otherwise",
+            "Write a Python program to find the union, intersection, and difference of two sets",
+            "What is the difference between: discard() and remove() in sets, clear() and del with sets",
+            "Explain the core competencies required to become a successful data scientist. Support your answer with examples of how these skills are applied in real-world data science projects",
+            "How do data science, big data, and AI complement each other in modern analytics ecosystems?",
+            "How does programming enhance the efficiency of data analysis compared to manual methods?",
+            "Difference between python & Ipython",
+            "What are magic functions in IPython? Illustrate their use with examples",
+            "Write program on use of arithmetic operators and their magic functions",
+            "What is IPython? List and explain the main features of IPython in detail",
+            "Write short note on: Magic command in IPython, jupyter notebook, Restoring A Checkpoint",
+            "What are magic methods in Python? How do they relate to operator overloading?",
+            "Explain how comparison operators are implemented using magic methods in Python",
+            "What are Attribute Access Methods in Python? Explain their purpose with examples",
+            "What is kernel? Types of kernel. Why is restarting a kernel sometimes necessary?",
+            "How do you load a built-in dataset in Seaborn? Give example",
+            "Write a Python program to draw a line chart that displays monthly sales data. Explain each step in detail",
+            "What are the key factors to consider when selecting a graph for data visualization?",
+            "Write a Python program to create a pie chart showing sales distribution among different products. Explain each step",
+            "Explain timeplot in detail",
+            "Explain role of hashing in data wrangling",
+            "What is benchmarking? Explain in detail",
+            "Demonstrate hashing trick with program"
+        ];
+
+        let progress = {};
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('dsTrackerProgress');
+                if (saved) {
+                    progress = JSON.parse(saved);
+                } else {
+                    progress = {};
+                }
+            } catch (e) {
+                progress = {};
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('dsTrackerProgress', JSON.stringify(progress));
+        }
+
+        function renderQuestions() {
+            const commonContainer = document.getElementById('commonQuestions');
+            const uniqueContainer = document.getElementById('uniqueQuestions');
+
+            commonContainer.innerHTML = '';
+            uniqueContainer.innerHTML = '';
+
+            commonQuestions.forEach((question, index) => {
+                const id = `common-${index}`;
+                const isChecked = progress[id] || false;
+                const item = createQuestionItem(question, id, isChecked);
+                commonContainer.appendChild(item);
+            });
+
+            uniqueQuestions.forEach((question, index) => {
+                const id = `unique-${index}`;
+                const isChecked = progress[id] || false;
+                const item = createQuestionItem(question, id, isChecked);
+                uniqueContainer.appendChild(item);
+            });
+
+            updateStats();
+        }
+
+        function createQuestionItem(question, id, isChecked) {
+            const div = document.createElement('div');
+            div.className = `question-item ${isChecked ? 'completed' : ''}`;
+            
+            const checkbox = document.createElement('div');
+            checkbox.className = `checkbox ${isChecked ? 'checked' : ''}`;
+            checkbox.onclick = function(e) {
+                e.stopPropagation();
+                toggleQuestion(id);
+            };
+
+            const text = document.createElement('div');
+            text.className = 'question-text';
+            text.textContent = question;
+            text.onclick = function(e) {
+                e.stopPropagation();
+                toggleQuestion(id);
+            };
+
+            div.appendChild(checkbox);
+            div.appendChild(text);
+
+            return div;
+        }
+
+        function toggleQuestion(id) {
+            if (progress[id]) {
+                delete progress[id];
+            } else {
+                progress[id] = true;
+            }
+            saveProgress();
+            renderQuestions();
+        }
+
+        function updateStats() {
+            const total = commonQuestions.length + uniqueQuestions.length;
+            const completed = Object.values(progress).filter(v => v === true).length;
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            const commonCompleted = commonQuestions.filter((_, i) => progress[`common-${i}`] === true).length;
+            const uniqueCompleted = uniqueQuestions.filter((_, i) => progress[`unique-${i}`] === true).length;
+
+            document.getElementById('totalQuestions').textContent = total;
+            document.getElementById('completedQuestions').textContent = completed;
+            document.getElementById('percentageComplete').textContent = `${percentage}%`;
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            document.getElementById('progressBar').textContent = `${percentage}%`;
+            document.getElementById('commonCount').textContent = `${commonCompleted}/36`;
+            document.getElementById('uniqueCount').textContent = `${uniqueCompleted}/28`;
+        }
+
+        // Clear any old data and start fresh
+        localStorage.removeItem('dsTrackerProgress');
+        progress = {};
+        
+        loadProgress();
+        renderQuestions();
+    </script>
+</body>
+</html>
