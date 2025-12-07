@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(to bottom right, #0f172a, #1e3a8a, #0f172a);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 896px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(to right, #2563eb, #4f46e5);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            margin-bottom: 32px;
+            padding: 32px;
+            color: white;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-title-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title-section h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-subtitle {
+            color: #bfdbfe;
+            font-size: 1.125rem;
+            margin-top: 8px;
+        }
+
+        .save-status {
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 0.875rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .save-status.synced {
+            background: #10b981;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #bfdbfe;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background: rgba(30, 58, 138, 0.5);
+            border-radius: 9999px;
+            height: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, #34d399, #22d3ee);
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.5);
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #bfdbfe;
+            font-size: 0.875rem;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 12px 40px 12px 40px;
+            background: white;
+            color: #334155;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2'%3E%3Cpath d='M3 6h18M7 12h10M10 18h4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 12px center;
+        }
+
+        .filter-select:hover {
+            border-color: #2563eb;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            width: 100%;
+            padding: 24px;
+            text-align: left;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-weight: 900;
+            font-size: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .section-header.common {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+        }
+
+        .section-header.common:hover {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+        }
+
+        .section-header.unique {
+            background: linear-gradient(to right, #a855f7, #9333ea);
+        }
+
+        .section-header.unique:hover {
+            background: linear-gradient(to right, #9333ea, #7e22ce);
+        }
+
+        .section-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        .section-subtitle {
+            font-size: 0.875rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .chevron {
+            transition: transform 0.3s;
+        }
+
+        .chevron.rotated {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: 24px;
+            background: #f8fafc;
+            display: none;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .question-item {
+            position: relative;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e2e8f0;
+            background: white;
+        }
+
+        .question-item:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+            border-color: #3b82f6;
+        }
+
+        .question-item.completed {
+            border-color: #10b981;
+            background: #ecfdf5;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .question-item.completed:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            transform: scale(1.02);
+        }
+
+        .question-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .checkbox {
+            min-width: 24px;
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            border: 2px solid #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .question-item:hover .checkbox {
+            border-color: #3b82f6;
+        }
+
+        .question-item.completed .checkbox {
+            background: #10b981;
+            border-color: #10b981;
+            transform: scale(1.1);
+        }
+
+        .checkbox svg {
+            display: none;
+            width: 16px;
+            height: 16px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .question-item.completed .checkbox svg {
+            display: block;
+        }
+
+        .question-text-container {
+            flex: 1;
+        }
+
+        .question-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            transition: all 0.3s;
+        }
+
+        .question-item.completed .question-text {
+            color: #059669;
+            text-decoration: line-through;
+        }
+
+        .question-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+        }
+
+        .question-badge.common {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .question-badge.unique {
+            background: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        .sparkle {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 1.5rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            color: #bfdbfe;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-title-section h1 {
+                font-size: 1.5rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-title-section">
+                    <div>
+                        <h1>⚡ Data Science Tracker</h1>
+                        <p class="header-subtitle">Master every concept with precision</p>
+                    </div>
+                </div>
+                <div class="save-status" id="saveStatus">💾 Ready</div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <p class="stat-label">TOTAL</p>
+                    <p class="stat-value" id="totalQuestions">64</p>
+                </div>
+                <div class="stat-box">
+                    <p class="stat-label">COMPLETED</p>
+                    <p class="stat-value" id="completedQuestions">0</p>
+                </div>
+                <div class="stat-box">
+                    <p class="stat-label">PROGRESS</p>
+                    <p class="stat-value" id="percentageComplete">0%</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <p class="progress-text" id="progressText">0 of 64 questions completed</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <select class="filter-select" id="filterSelect">
+                <option value="all">📋 All Questions</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="done">✅ Done</option>
+            </select>
+        </div>
+
+        <!-- Common Questions Section -->
+        <div class="section">
+            <button class="section-header common" id="commonHeader">
+                <div class="section-header-left">
+                    <span class="section-icon">📚</span>
+                    <div>
+                        <div>Common Questions (Both Papers & Units)</div>
+                        <div class="section-subtitle" id="commonSubtitle">0/36 completed</div>
+                    </div>
+                </div>
+                <svg class="chevron" id="commonChevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-content expanded" id="commonContent"></div>
+        </div>
+
+        <!-- Unique Questions Section -->
+        <div class="section">
+            <button class="section-header unique" id="uniqueHeader">
+                <div class="section-header-left">
+                    <span class="section-icon">⭐</span>
+                    <div>
+                        <div>Unique Questions (Only Units)</div>
+                        <div class="section-subtitle" id="uniqueSubtitle">0/28 completed</div>
+                    </div>
+                </div>
+                <svg class="chevron" id="uniqueChevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-content" id="uniqueContent"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🎯 Keep grinding! Your consistency will pay off.</p>
+        </div>
+    </div>
+
+    <script>
+        const commonQuestions = [
+            "Explain Arithmetic operators with example",
+            "Explain Python List Methods",
+            "Explain string methods",
+            "What is a dictionary in Python? Explain its key features...",
+            "Write a Python program to count character frequency...",
+            "What are classes and objects in Python? Explain with examples",
+            "What is a function in Python? Explain advantages with example",
+            "What's Data Science Pipeline?",
+            "Data Science Pipeline",
+            "Explain Data Science Pipeline with neat diagram",
+            "Explain applications of data science",
+            "Explain data science and AI",
+            "What Is Data Visualization? Explain plot types",
+            "Explain Data Visualization? Explain plots",
+            "Explain Data Visualization. Types of Plots",
+            "What is data visualization? Importance?",
+            "What Is Matplotlib? Explain box/pie plot",
+            "Scatter plot example",
+            "Explain scatter plot with program",
+            "Explain Histogram with example?",
+            "Short note: histogram, boxplot, directed/undirected graph",
+            "Explain pie chart",
+            "Difference between bar, line, pie chart?",
+            "Explain central tendency & variance",
+            "Mean, median, mode with example",
+            "What is coefficient of correlation?",
+            "Coefficient of correlation with example",
+            "What is a Contingency Table?",
+            "Explain EDA",
+            "Exploratory Data Analysis",
+            "EDA types & steps",
+            "What is Data Wrangling?",
+            "Wrangling of Data",
+            "Data wrangling process",
+            "Arithmetic operators"
+        ];
+
+        const uniqueQuestions = [
+            "What is data science? What is Python? Features?",
+            "Role of data types in Python. Explain list methods",
+            "What is a string? slicing, concatenation, repetition",
+            "Difference: list vs tuple",
+            "Define tuple, immutability",
+            "Program: Pass/Fail",
+            "Program: set union, intersection, difference",
+            "Difference: discard(), remove(), clear(), del",
+            "Core skills for data scientist",
+            "How data science, big data, AI work together?",
+            "How programming improves data analysis?",
+            "Python vs IPython",
+            "Magic functions in IPython",
+            "Program: arithmetic operators + magic",
+            "What is IPython? Features?",
+            "Short note: Magic, Jupyter, Checkpoint",
+            "Magic methods & operator overloading",
+            "Comparison operators using magic methods",
+            "Attribute access methods",
+            "What is kernel? Types? Why restart?",
+            "Load Seaborn built-in dataset",
+            "Program: line chart",
+            "Factors for choosing a graph",
+            "Program: pie chart",
+            "Explain timeplot",
+            "Role of hashing in wrangling",
+            "What is benchmarking?",
+            "Hashing trick program"
+        ];
+
+        let progress = new Set();
+        let currentFilter = 'all';
+
+        // Toggle sections
+        document.getElementById('commonHeader').addEventListener('click', () => {
+            const content = document.getElementById('commonContent');
+            const chevron = document.getElementById('commonChevron');
+            content.classList.toggle('expanded');
+            chevron.classList.toggle('rotated');
+        });
+
+        document.getElementById('uniqueHeader').addEventListener('click', () => {
+            const content = document.getElementById('uniqueContent');
+            const chevron = document.getElementById('uniqueChevron');
+            content.classList.toggle('expanded');
+            chevron.classList.toggle('rotated');
+        });
+
+        // Filter
+        document.getElementById('filterSelect').addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            renderQuestions();
+        });
+
+        function toggleQuestion(id) {
+            if (progress.has(id)) {
+                progress.delete(id);
+            } else {
+                progress.add(id);
+            }
+            updateSaveStatus();
+            renderQuestions();
+        }
+
+        function updateSaveStatus() {
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.textContent = '✅ Synced';
+            statusEl.classList.add('synced');
+            setTimeout(() => {
+                statusEl.textContent = '💾 Ready';
+                statusEl.classList.remove('synced');
+            }, 2000);
+        }
+
+        function shouldShowQuestion(isCompleted) {
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'done') return isCompleted;
+            if (currentFilter === 'pending') return !isCompleted;
+            return true;
+        }
+
+        function createQuestionElement(text, id, category) {
+            const isCompleted = progress.has(id);
+            
+            if (!shouldShowQuestion(isCompleted)) return null;
+
+            const div = document.createElement('div');
+            div.className = `question-item ${isCompleted ? 'completed' : ''}`;
+            div.onclick = () => toggleQuestion(id);
+
+            div.innerHTML = `
+                <div class="question-content">
+                    <div class="checkbox">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="question-text-container">
+                        <p class="question-text">${text}</p>
+                        <span class="question-badge ${category}">${category === 'common' ? 'Both' : 'Units'}</span>
+                    </div>
+                </div>
+                ${isCompleted ? '<div class="sparkle">✨</div>' : ''}
+            `;
+
+            return div;
+        }
+
+        function renderQuestions() {
+            const commonContainer = document.getElementById('commonContent');
+            const uniqueContainer = document.getElementById('uniqueContent');
+
+            commonContainer.innerHTML = '';
+            uniqueContainer.innerHTML = '';
+
+            commonQuestions.forEach((q, i) => {
+                const el = createQuestionElement(q, `c${i}`, 'common');
+                if (el) commonContainer.appendChild(el);
+            });
+
+            uniqueQuestions.forEach((q, i) => {
+                const el = createQuestionElement(q, `u${i}`, 'unique');
+                if (el) uniqueContainer.appendChild(el);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = commonQuestions.length + uniqueQuestions.length;
+            const done = progress.size;
+            const percent = Math.round((done / total) * 100);
+            const commonDone = commonQuestions.filter((_, i) => progress.has(`c${i}`)).length;
+            const uniqueDone = uniqueQuestions.filter((_, i) => progress.has(`u${i}`)).length;
+
+            document.getElementById('totalQuestions').textContent = total;
+            document.getElementById('completedQuestions').textContent = done;
+            document.getElementById('percentageComplete').textContent = percent + '%';
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `${done} of ${total} questions completed`;
+            document.getElementById('commonSubtitle').textContent = `${commonDone}/36 completed`;
+            document.getElementById('uniqueSubtitle').textContent = `${uniqueDone}/28 completed`;
+        }
+
+        renderQuestions();
+    </script>
+</body>
+</html>
