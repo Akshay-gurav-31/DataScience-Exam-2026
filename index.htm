@@ -39,6 +39,15 @@
             margin-bottom: 10px;
         }
 
+        .save-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
         .stats {
             display: flex;
             justify-content: center;
@@ -195,7 +204,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Data Science Tracker</h1>
+            <h1>📚 Data Science Tracker</h1>
+            <div class="save-indicator" id="saveIndicator">💾 Auto-saving...</div>
             <div class="stats">
                 <div class="stat-box">
                     <h3 id="totalQuestions">64</h3>
@@ -305,32 +315,87 @@
             "Demonstrate hashing trick with program"
         ];
 
-        let progress = {};
-        let isLoading = true;
+        // IndexedDB Setup
+        let db;
+        let progress = new Set();
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('DSTrackerDB', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('progress')) {
+                        db.createObjectStore('progress', { keyPath: 'id' });
+                    }
+                };
+            });
+        }
 
         async function loadProgress() {
             try {
-                const result = await window.storage.get('dsTrackerProgress');
-                if (result && result.value) {
-                    progress = JSON.parse(result.value);
-                } else {
-                    progress = {};
-                }
+                db = await openDB();
+                const transaction = db.transaction(['progress'], 'readonly');
+                const store = transaction.objectStore('progress');
+                const request = store.get('tracker-data');
+                
+                return new Promise((resolve) => {
+                    request.onsuccess = () => {
+                        if (request.result && request.result.data) {
+                            progress = new Set(request.result.data);
+                            showSaveIndicator('✅ Data loaded!');
+                        } else {
+                            showSaveIndicator('🆕 New tracker started');
+                        }
+                        resolve();
+                    };
+                    request.onerror = () => {
+                        showSaveIndicator('⚠️ Load failed');
+                        resolve();
+                    };
+                });
             } catch (e) {
-                console.log('No saved progress found, starting fresh');
-                progress = {};
+                console.error('Error loading:', e);
+                showSaveIndicator('⚠️ Load failed');
             }
-            isLoading = false;
         }
 
         async function saveProgress() {
-            if (isLoading) return;
             try {
-                await window.storage.set('dsTrackerProgress', JSON.stringify(progress));
-                console.log('Progress saved successfully');
+                const transaction = db.transaction(['progress'], 'readwrite');
+                const store = transaction.objectStore('progress');
+                const data = {
+                    id: 'tracker-data',
+                    data: Array.from(progress),
+                    timestamp: Date.now()
+                };
+                store.put(data);
+                
+                return new Promise((resolve) => {
+                    transaction.oncomplete = () => {
+                        showSaveIndicator('✅ Saved!');
+                        resolve();
+                    };
+                    transaction.onerror = () => {
+                        showSaveIndicator('❌ Save failed');
+                        resolve();
+                    };
+                });
             } catch (e) {
-                console.error('Error saving progress:', e);
+                console.error('Error saving:', e);
+                showSaveIndicator('❌ Save failed');
             }
+        }
+
+        function showSaveIndicator(message) {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.textContent = message;
+            setTimeout(() => {
+                indicator.textContent = '💾 Auto-saving...';
+            }, 2000);
         }
 
         function renderQuestions() {
@@ -341,15 +406,15 @@
             uniqueContainer.innerHTML = '';
 
             commonQuestions.forEach((question, index) => {
-                const id = `common-${index}`;
-                const isChecked = progress[id] || false;
+                const id = `c${index}`;
+                const isChecked = progress.has(id);
                 const item = createQuestionItem(question, id, isChecked);
                 commonContainer.appendChild(item);
             });
 
             uniqueQuestions.forEach((question, index) => {
-                const id = `unique-${index}`;
-                const isChecked = progress[id] || false;
+                const id = `u${index}`;
+                const isChecked = progress.has(id);
                 const item = createQuestionItem(question, id, isChecked);
                 uniqueContainer.appendChild(item);
             });
@@ -383,10 +448,10 @@
         }
 
         async function toggleQuestion(id) {
-            if (progress[id]) {
-                delete progress[id];
+            if (progress.has(id)) {
+                progress.delete(id);
             } else {
-                progress[id] = true;
+                progress.add(id);
             }
             await saveProgress();
             renderQuestions();
@@ -394,11 +459,11 @@
 
         function updateStats() {
             const total = commonQuestions.length + uniqueQuestions.length;
-            const completed = Object.values(progress).filter(v => v === true).length;
+            const completed = progress.size;
             const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-            const commonCompleted = commonQuestions.filter((_, i) => progress[`common-${i}`] === true).length;
-            const uniqueCompleted = uniqueQuestions.filter((_, i) => progress[`unique-${i}`] === true).length;
+            const commonCompleted = commonQuestions.filter((_, i) => progress.has(`c${i}`)).length;
+            const uniqueCompleted = uniqueQuestions.filter((_, i) => progress.has(`u${i}`)).length;
 
             document.getElementById('totalQuestions').textContent = total;
             document.getElementById('completedQuestions').textContent = completed;
@@ -409,12 +474,12 @@
             document.getElementById('uniqueCount').textContent = `${uniqueCompleted}/28`;
         }
 
-        // Initialize the app
+        // Initialize
         async function init() {
             await loadProgress();
             renderQuestions();
         }
-        
+
         init();
     </script>
 </body>
