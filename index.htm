@@ -306,22 +306,31 @@
         ];
 
         let progress = {};
+        let isLoading = true;
 
-        function loadProgress() {
+        async function loadProgress() {
             try {
-                const saved = localStorage.getItem('dsTrackerProgress');
-                if (saved) {
-                    progress = JSON.parse(saved);
+                const result = await window.storage.get('dsTrackerProgress');
+                if (result && result.value) {
+                    progress = JSON.parse(result.value);
                 } else {
                     progress = {};
                 }
             } catch (e) {
+                console.log('No saved progress found, starting fresh');
                 progress = {};
             }
+            isLoading = false;
         }
 
-        function saveProgress() {
-            localStorage.setItem('dsTrackerProgress', JSON.stringify(progress));
+        async function saveProgress() {
+            if (isLoading) return;
+            try {
+                await window.storage.set('dsTrackerProgress', JSON.stringify(progress));
+                console.log('Progress saved successfully');
+            } catch (e) {
+                console.error('Error saving progress:', e);
+            }
         }
 
         function renderQuestions() {
@@ -373,13 +382,13 @@
             return div;
         }
 
-        function toggleQuestion(id) {
+        async function toggleQuestion(id) {
             if (progress[id]) {
                 delete progress[id];
             } else {
                 progress[id] = true;
             }
-            saveProgress();
+            await saveProgress();
             renderQuestions();
         }
 
@@ -400,12 +409,13 @@
             document.getElementById('uniqueCount').textContent = `${uniqueCompleted}/28`;
         }
 
-        // Clear any old data and start fresh
-        localStorage.removeItem('dsTrackerProgress');
-        progress = {};
+        // Initialize the app
+        async function init() {
+            await loadProgress();
+            renderQuestions();
+        }
         
-        loadProgress();
-        renderQuestions();
+        init();
     </script>
 </body>
 </html>
