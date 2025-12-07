@@ -154,6 +154,23 @@
             border-color: #2563eb;
         }
 
+        .clear-button {
+            padding: 12px 24px;
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .clear-button:hover {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+        }
+
         .section {
             background: white;
             border-radius: 16px;
@@ -363,6 +380,9 @@
             .stat-value {
                 font-size: 1.5rem;
             }
+            .controls {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -410,6 +430,7 @@
                 <option value="pending">⏳ Pending</option>
                 <option value="done">✅ Done</option>
             </select>
+            <button class="clear-button" id="clearButton">🗑️ Clear All Progress</button>
         </div>
 
         <!-- Common Questions Section -->
@@ -449,6 +470,7 @@
         <!-- Footer -->
         <div class="footer">
             <p>🎯 Keep grinding! Your consistency will pay off.</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; color: #94a3b8;">Progress is automatically saved to your browser</p>
         </div>
     </div>
 
@@ -522,8 +544,43 @@
             "Hashing trick program"
         ];
 
+        // Storage key for localStorage
+        const STORAGE_KEY = 'dataScienceTrackerProgress';
         let progress = new Set();
         let currentFilter = 'all';
+
+        // Load progress from localStorage on page load
+        function loadProgress() {
+            const savedProgress = localStorage.getItem(STORAGE_KEY);
+            if (savedProgress) {
+                try {
+                    const progressArray = JSON.parse(savedProgress);
+                    progress = new Set(progressArray);
+                } catch (e) {
+                    console.error('Error loading progress:', e);
+                    progress = new Set();
+                }
+            }
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            const progressArray = Array.from(progress);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progressArray));
+        }
+
+        // Clear all progress
+        function clearProgress() {
+            if (confirm('Are you sure you want to clear all progress? This cannot be undone.')) {
+                progress.clear();
+                localStorage.removeItem(STORAGE_KEY);
+                updateSaveStatus('🗑️ Cleared');
+                renderQuestions();
+            }
+        }
+
+        // Initialize
+        loadProgress();
 
         // Toggle sections
         document.getElementById('commonHeader').addEventListener('click', () => {
@@ -546,23 +603,28 @@
             renderQuestions();
         });
 
+        // Clear button
+        document.getElementById('clearButton').addEventListener('click', clearProgress);
+
         function toggleQuestion(id) {
             if (progress.has(id)) {
                 progress.delete(id);
             } else {
                 progress.add(id);
             }
-            updateSaveStatus();
+            saveProgress(); // Save to localStorage
+            updateSaveStatus('✅ Saved');
             renderQuestions();
         }
 
-        function updateSaveStatus() {
+        function updateSaveStatus(message) {
             const statusEl = document.getElementById('saveStatus');
-            statusEl.textContent = '✅ Synced';
-            statusEl.classList.add('synced');
+            statusEl.textContent = message;
+            statusEl.style.background = '#10b981';
+            
             setTimeout(() => {
                 statusEl.textContent = '💾 Ready';
-                statusEl.classList.remove('synced');
+                statusEl.style.background = 'rgba(255, 255, 255, 0.2)';
             }, 2000);
         }
 
@@ -636,7 +698,17 @@
             document.getElementById('uniqueSubtitle').textContent = `${uniqueDone}/28 completed`;
         }
 
+        // Initial render
         renderQuestions();
+        
+        // Show welcome message if first visit
+        window.addEventListener('load', () => {
+            if (!localStorage.getItem(STORAGE_KEY)) {
+                setTimeout(() => {
+                    updateSaveStatus('👋 Progress will auto-save!');
+                }, 500);
+            }
+        });
     </script>
 </body>
 </html>
